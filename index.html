@@ -1,228 +1,212 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>SCI 기업 평가 시스템</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-    }
-    .slider-container {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type=range] {
-      width: 100%;
-    }
-    .score-label {
-      text-align: right;
-      font-size: 0.9em;
-      margin-top: 2px;
-      color: #555;
-    }
-    .output {
-      text-align: center;
-      margin-top: 20px;
-    }
-    #chart-container {
-      margin-top: 30px;
-    }
-    #solutionReport {
-      margin-top: 30px;
-      background: #f0f8ff;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    #solutionReport h4 {
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>SCI 기업 평가 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type=range] {
+            width: 100%;
+        }
+        .score-label {
+            text-align: right;
+            font-size: 0.9em;
+            margin-top: 2px;
+            color: #555;
+        }
+        .output {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #solutionReport {
+            margin-top: 30px;
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        #solutionReport h4 {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-  <h2>SCI 기업 평가 시스템</h2>
-  <label>기업 이름: <input type="text" id="companyName"></label>
+    <h2>SCI 기업 평가 시스템</h2>
+    <label>기업 이름: <input type="text" id="companyName"></label>
 
-  <div id="sliders"></div>
+    <div id="sliders"></div>
 
-  <div class="output">
-    <button onclick="calculateScore()">점수 계산</button>
-    <button onclick="downloadSolutions()">솔루션 다운로드</button>
-    <p id="totalScore"></p>
-    <p id="grade"></p>
-  </div>
+    <div class="output">
+        <button onclick="calculateScore()">점수 계산</button>
+        <button onclick="downloadSolutions()">솔루션 다운로드</button>
+        <p id="totalScore"></p>
+        <p id="grade"></p>
+    </div>
+    <div id="solutionReport"></div>
 </div>
 
 <script>
-  const categories = {
-    "환경 (E)": [
-      "온실가스 감축 목표",
-      "재생에너지 사용",
-      "용수 사용량 절감",
-      "폐기물 관리",
-      "유해물질 관리"
-    ],
-    "사회 (S)": [
-      "공정 임금",
-      "고용 안정성",
-      "다양성/포용성",
-      "제품 안정성",
-      "개인정보 보호"
-    ],
-    "지배구조 (G)": [
-      "반부패 정책",
-      "내부고발 시스템",
-      "이사회 구성",
-      "지속가능 보고서",
-      "외부 검증"
-    ]
-  };
-
-  const solutions = {
-    "온실가스 감축 목표": "온실가스 배출량 측정 시스템을 도입하세요.",
-    "재생에너지 사용": "재생에너지 활용 비중을 확대하세요.",
-    "용수 사용량 절감": "물 재활용 시스템을 설치하세요.",
-    "폐기물 관리": "폐기물 분리배출 및 재활용을 강화하세요.",
-    "유해물질 관리": "유해물질 배출 기준을 강화하고 지속적으로 모니터링하세요.",
-    "공정 임금": "직원들에게 공정한 보상 체계를 마련하세요.",
-    "고용 안정성": "비정규직 비율을 줄이고 고용 안정을 도모하세요.",
-    "다양성/포용성": "소수자 채용 확대 및 다양성 교육을 진행하세요.",
-    "제품 안정성": "품질 검사를 강화하고 안전 기준을 준수하세요.",
-    "개인정보 보호": "고객 개인정보 암호화 및 접근 통제를 강화하세요.",
-    "반부패 정책": "윤리 교육과 함께 내부 고발 제도를 강화하세요.",
-    "내부고발 시스템": "익명성이 보장된 제보 시스템을 운영하세요.",
-    "이사회 구성": "외부 전문가와 다양한 배경의 인사를 포함하세요.",
-    "지속가능 보고서": "정기적으로 ESG 보고서를 발간하세요.",
-    "외부 검증": "외부 회계 및 인증기관의 평가를 받으세요."
-  };
-
-  let latestSolutionsText = "";
-
-  const slidersDiv = document.getElementById("sliders");
-
-  Object.entries(categories).forEach(([category, items]) => {
-    const catTitle = document.createElement("h3");
-    catTitle.textContent = category;
-    slidersDiv.appendChild(catTitle);
-
-    items.forEach((item, idx) => {
-      const container = document.createElement("div");
-      container.className = "slider-container";
-
-      const label = document.createElement("label");
-      label.textContent = item;
-
-      const slider = document.createElement("input");
-      slider.type = "range";
-      slider.min = 0;
-      slider.max = 100;
-      slider.step = 1;
-      slider.value = 50;
-      slider.name = `${category}-${item}`;
-      slider.oninput = function () {
-        valueLabel.textContent = `현재 점수: ${slider.value}`;
-      };
-
-      const valueLabel = document.createElement("div");
-      valueLabel.className = "score-label";
-      valueLabel.textContent = `현재 점수: ${slider.value}`;
-
-      container.appendChild(label);
-      container.appendChild(slider);
-      container.appendChild(valueLabel);
-      slidersDiv.appendChild(container);
-    });
-  });
-
-  function calculateScore() {
-    const sliders = document.querySelectorAll("input[type=range]");
-    let total = 0;
-    let data = {
-      "환경 (E)": 0,
-      "사회 (S)": 0,
-      "지배구조 (G)": 0
+    const categories = {
+        "환경 (E)": ["온실가스 감축 목표", "재생에너지 사용", "용수 사용량 절감", "폐기물 관리", "유해물질 관리"],
+        "사회 (S)": ["공정 임금", "고용 안정성", "다양성/포용성", "제품 안정성", "개인정보 보호"],
+        "지배구조 (G)": ["반부패 정책", "내부고발 시스템", "이사회 구성", "지속가능 보고서", "외부 검증"]
     };
-    let counts = {
-      "환경 (E)": 0,
-      "사회 (S)": 0,
-      "지배구조 (G)": 0
-    };
-    let lowScores = [];
 
-    sliders.forEach(slider => {
-      const [cat, item] = slider.name.split("-");
-      const value = parseInt(slider.value);
-      total += value;
-      data[cat] += value;
-      counts[cat] += 1;
-      lowScores.push({ category: cat, item: item, score: value });
+    let solutions = {};  // JSON에서 불러올 객체
+    let latestSolutionsText = "";
+
+    const slidersDiv = document.getElementById("sliders");
+
+    Object.entries(categories).forEach(([category, items]) => {
+        const catTitle = document.createElement("h3");
+        catTitle.textContent = category;
+        slidersDiv.appendChild(catTitle);
+
+        items.forEach((item) => {
+            const container = document.createElement("div");
+            container.className = "slider-container";
+
+            const label = document.createElement("label");
+            label.textContent = item;
+
+            const slider = document.createElement("input");
+            slider.type = "range";
+            slider.min = 0;
+            slider.max = 100;
+            slider.step = 1;
+            slider.value = 50;
+            slider.name = `${category}-${item}`;
+            slider.oninput = function () {
+                valueLabel.textContent = `현재 점수: ${slider.value}`;
+            };
+
+            const valueLabel = document.createElement("div");
+            valueLabel.className = "score-label";
+            valueLabel.textContent = `현재 점수: ${slider.value}`;
+
+            container.appendChild(label);
+            container.appendChild(slider);
+            container.appendChild(valueLabel);
+            slidersDiv.appendChild(container);
+        });
     });
 
-    const avgTotal = total / sliders.length;
-    const grade = avgTotal >= 90 ? "A+" : avgTotal >= 80 ? "A" : avgTotal >= 70 ? "B" : avgTotal >= 60 ? "C" : "D";
-
-    document.getElementById("totalScore").textContent = `총점: ${avgTotal.toFixed(2)} / 100`;
-    document.getElementById("grade").textContent = `등급: ${grade}`;
-
-    const solutionDiv = document.getElementById("solutionReport");
-    lowScores.sort((a, b) => a.score - b.score);
-    const selected = lowScores.filter(item => item.score < 80).slice(0, 3);
-
-    let solutionHtml = '<h4>개선 솔루션 제안</h4><ul>';
-    latestSolutionsText = "개선 솔루션 제안\n";
-
-    if (selected.length === 0) {
-      solutionHtml += `<li>모든 항목이 80점 이상입니다. 추가 개선이 필요하지 않습니다.</li>`;
-      latestSolutionsText += "모든 항목이 80점 이상입니다. 추가 개선이 필요하지 않습니다.\n";
-    } else {
-      selected.forEach(({category, item}) => {
-        const solution = solutions[item] || "해당 항목에 대한 솔루션이 없습니다.";
-        solutionHtml += `<li>(${category}) ${item}: ${solution}</li>`;
-        latestSolutionsText += `(${category}) ${item}: ${solution}\n`;
-      });
+    async function fetchSolutions() {
+        try {
+            const res = await fetch("solutions.json");
+            solutions = await res.json();
+        } catch (e) {
+            alert("솔루션 정보를 불러오는 데 실패했습니다.");
+            console.error(e);
+        }
     }
 
-    solutionHtml += '</ul>';
-    solutionDiv.innerHTML = solutionHtml;
-  }
+    async function calculateScore() {
+        if (Object.keys(solutions).length === 0) {
+            await fetchSolutions();
+        }
 
-  function downloadSolutions() {
-    try {
-      const blob = new Blob([latestSolutionsText], { type: "text/plain;charset=utf-8" });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+        const sliders = document.querySelectorAll("input[type=range]");
+        let total = 0;
+        let data = {
+            "환경 (E)": 0,
+            "사회 (S)": 0,
+            "지배구조 (G)": 0
+        };
+        let counts = {
+            "환경 (E)": 0,
+            "사회 (S)": 0,
+            "지배구조 (G)": 0
+        };
+        let lowScores = [];
 
-      link.setAttribute("href", url);
-      link.setAttribute("download", "solution.txt");
-      link.style.display = "none";
+        sliders.forEach(slider => {
+            const [cat, item] = slider.name.split("-");
+            const value = parseInt(slider.value);
+            total += value;
+            data[cat] += value;
+            counts[cat] += 1;
+            lowScores.push({ category: cat, item: item, score: value });
+        });
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (e) {
-      alert("파일 다운로드 중 오류가 발생했습니다.");
-      console.error(e);
+        const avgTotal = total / sliders.length;
+        const grade = avgTotal >= 90 ? "A+" : avgTotal >= 80 ? "A" : avgTotal >= 70 ? "B" : avgTotal >= 60 ? "C" : "D";
+
+        document.getElementById("totalScore").textContent = `총점: ${avgTotal.toFixed(2)} / 100`;
+        document.getElementById("grade").textContent = `등급: ${grade}`;
+
+        const solutionDiv = document.getElementById("solutionReport");
+        lowScores.sort((a, b) => a.score - b.score);
+        const selected = lowScores.filter(item => item.score < 80).slice(0, 3);
+
+        let solutionHtml = '<h4>개선 솔루션 제안</h4><ul>';
+        latestSolutionsText = "개선 솔루션 제안\n";
+
+        if (selected.length === 0) {
+            solutionHtml += `<li>모든 항목이 80점 이상입니다. 추가 개선이 필요하지 않습니다.</li>`;
+            latestSolutionsText += "모든 항목이 80점 이상입니다. 추가 개선이 필요하지 않습니다.\n";
+        } else {
+            selected.forEach(({category, item}) => {
+                const solution = solutions[item];
+                const shortText = solution?.short || "해당 항목에 대한 솔루션이 없습니다.";
+                const longText = solution?.long || shortText;
+
+                solutionHtml += `<li>(${category}) ${item}: ${shortText}</li>`;
+                latestSolutionsText += `${category} 항목의 ${item}가(이) 문제가 있습니다. ${longText}\n`;
+            });
+        }
+
+        solutionHtml += '</ul>';
+        solutionDiv.innerHTML = solutionHtml;
     }
-  }
+
+    function downloadSolutions() {
+        try {
+            const blob = new Blob([latestSolutionsText], { type: "text/plain;charset=utf-8" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const title = document.getElementById("companyName").value || "solution";
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${title}에 대한 기업 보고서.txt`);
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            alert("파일 다운로드 중 오류가 발생했습니다.");
+            console.error(e);
+        }
+    }
+
+    // 첫 로드시 솔루션 JSON 불러오기
+    fetchSolutions();
 
 </script>
 </body>
